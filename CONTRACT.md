@@ -29,6 +29,11 @@ The compiler will continue to match the existing four-argument calls in FrontDes
 **Is an additive change always safe in Java?** One case where adding something
 to an API still breaks a caller, if you can name one.
 
+The result. lab06-api: 9 tests passed. lab06-consumer: 7 tests passed with no source changes. All reactor modules succeeded and the build ended with BUILD SUCCESS.
+
+If your prediction was wrong. My prediction was correct. The existing four-argument calls in FrontDesk still resolved to the original four-argument overload.
+
+Is an additive change always safe in Java? No. For example, adding an abstract method to an interface can break existing implementations because they must implement the new method.
 ---
 
 ## Milestone 2: The request object
@@ -42,6 +47,15 @@ which module goes red and whether at compile time or test time.
 
 **What about the tests in `api/`, after you update them?** And whether their
 result is evidence about the consumer.
+
+Will the untouched consumer still compile and pass?
+No. I predict that the api module will compile and its updated tests will pass, but the consumer module will fail at compile time because the old positional createBooking methods will have been replaced by createBooking(BookingRequest).
+
+Where.
+I expect FrontDesk.java:27 and FrontDesk.java:33 to fail because both call the existing four-argument createBooking method.
+
+What about the tests in api/, after you update them?
+I expect the updated API tests to pass because they will use BookingRequest. However, that does not show that the consumer is compatible, because the API tests do not compile or exercise FrontDesk.
 
 ### Step 1: after the fold
 
