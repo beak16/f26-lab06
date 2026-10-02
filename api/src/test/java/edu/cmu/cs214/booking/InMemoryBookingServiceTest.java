@@ -14,7 +14,7 @@ class InMemoryBookingServiceTest {
 
     @Test
     void freeRoomGivesConfirmedBooking() {
-        Booking booking = api.createBooking("R1", 540, 600, null);
+        Booking booking = api.createBooking(BookingRequest.of("R1", 540, 600));
 
         assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
         assertEquals(540, booking.getStartMinute());
@@ -22,17 +22,17 @@ class InMemoryBookingServiceTest {
 
     @Test
     void conflictWithoutKeyReturnsNull() {
-        api.createBooking("R1", 540, 600, null);
+        api.createBooking(BookingRequest.of("R1", 540, 600));
 
-        assertNull(api.createBooking("R1", 570, 630, null));
+        assertNull(api.createBooking(BookingRequest.of("R1", 570, 630)));
         assertEquals(1, api.listBookings("R1").size());
     }
 
     @Test
     void conflictWithKeyGoesOnWaitlist() {
-        api.createBooking("R1", 540, 600, null);
+        api.createBooking(BookingRequest.of("R1", 540, 600));
 
-        Booking queued = api.createBooking("R1", 570, 630, "party-of-four");
+        Booking queued = api.createBooking(BookingRequest.of("R1", 570, 630).withWaitlistKey("party-of-four"));
 
         assertEquals(BookingStatus.WAITLISTED, queued.getStatus());
         assertEquals("party-of-four", queued.getWaitlistKey());
@@ -40,17 +40,17 @@ class InMemoryBookingServiceTest {
 
     @Test
     void touchingRangesDoNotConflict() {
-        api.createBooking("R1", 540, 600, null);
+        api.createBooking(BookingRequest.of("R1", 540, 600));
 
-        Booking next = api.createBooking("R1", 600, 660, null);
+        Booking next = api.createBooking(BookingRequest.of("R1", 600, 660));
 
         assertEquals(BookingStatus.CONFIRMED, next.getStatus());
     }
 
     @Test
     void cancelWithNotifyPromotesTheWaitlistedBooking() {
-        Booking held = api.createBooking("R1", 540, 600, null);
-        Booking queued = api.createBooking("R1", 570, 630, "party-of-four");
+        Booking held = api.createBooking(BookingRequest.of("R1", 540, 600));
+        Booking queued = api.createBooking(BookingRequest.of("R1", 570, 630).withWaitlistKey("party-of-four"));
 
         assertTrue(api.cancelBooking(held.getId(), true));
 
@@ -62,7 +62,7 @@ class InMemoryBookingServiceTest {
 
     @Test
     void notesAreStoredOnConfirmedBooking() {
-        Booking booking = api.createBooking("R1", 540, 600, null, "needs projector");
+        Booking booking = api.createBooking(BookingRequest.of("R1", 540, 600).withNotes("needs projector"));
 
         assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
         assertEquals("needs projector", booking.getNotes());
@@ -70,9 +70,11 @@ class InMemoryBookingServiceTest {
 
     @Test
     void notesAreStoredOnWaitlistedBooking() {
-        api.createBooking("R1", 540, 600, null);
+        api.createBooking(BookingRequest.of("R1", 540, 600));
 
-        Booking queued = api.createBooking("R1", 570, 630, "party-of-four", "window seat");
+        Booking queued = api.createBooking(BookingRequest.of("R1", 570, 630)
+                .withWaitlistKey("party-of-four")
+                .withNotes("window seat"));
 
         assertEquals(BookingStatus.WAITLISTED, queued.getStatus());
         assertEquals("party-of-four", queued.getWaitlistKey());
@@ -81,15 +83,16 @@ class InMemoryBookingServiceTest {
 
     @Test
     void notesDoNotChangeConflictWithoutKey() {
-        api.createBooking("R1", 540, 600, null);
+        api.createBooking(BookingRequest.of("R1", 540, 600));
 
-        assertNull(api.createBooking("R1", 570, 630, null, "please squeeze us in"));
+        assertNull(api.createBooking(BookingRequest.of("R1", 570, 630)
+                .withNotes("please squeeze us in")));
         assertEquals(1, api.listBookings("R1").size());
     }
 
     @Test
-    void fourArgumentCallHasNullNotes() {
-        Booking booking = api.createBooking("R1", 540, 600, null);
+    void requestWithoutNotesHasNullNotes() {
+        Booking booking = api.createBooking(BookingRequest.of("R1", 540, 600));
 
         assertNull(booking.getNotes());
     }
