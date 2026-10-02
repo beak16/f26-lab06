@@ -13,8 +13,12 @@ Keep it short and specific. Point at methods, call sites, and error text.
 
 **Will the consumer, untouched, still compile and pass?** Yes or no.
 
+Yes. I predict that the untouched consumer will still compile and pass its tests. The existing four-argument createBooking method will remain unchanged, while the new method is an additional five-argument overload with notes. Therefore, the existing calls in FrontDesk can still use the original four-argument method. This is an additive change because it adds new API surface without removing or changing what the existing consumer relies on.
+
 **Why.** What does the compiler do with the consumer's existing call sites once
 the new overload exists?
+
+The compiler will continue to match the existing four-argument calls in FrontDesk to the original four-argument createBooking method. The new five-argument overload is not selected because those call sites only provide four arguments.
 
 ### What happened
 
