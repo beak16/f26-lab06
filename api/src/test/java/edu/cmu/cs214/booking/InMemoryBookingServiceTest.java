@@ -59,4 +59,38 @@ class InMemoryBookingServiceTest {
         assertEquals(1, schedule.size());
         assertEquals(queued.getId(), schedule.get(0).getId());
     }
+
+    @Test
+    void notesAreStoredOnConfirmedBooking() {
+        Booking booking = api.createBooking("R1", 540, 600, null, "needs projector");
+
+        assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
+        assertEquals("needs projector", booking.getNotes());
+    }
+
+    @Test
+    void notesAreStoredOnWaitlistedBooking() {
+        api.createBooking("R1", 540, 600, null);
+
+        Booking queued = api.createBooking("R1", 570, 630, "party-of-four", "window seat");
+
+        assertEquals(BookingStatus.WAITLISTED, queued.getStatus());
+        assertEquals("party-of-four", queued.getWaitlistKey());
+        assertEquals("window seat", queued.getNotes());
+    }
+
+    @Test
+    void notesDoNotChangeConflictWithoutKey() {
+        api.createBooking("R1", 540, 600, null);
+
+        assertNull(api.createBooking("R1", 570, 630, null, "please squeeze us in"));
+        assertEquals(1, api.listBookings("R1").size());
+    }
+
+    @Test
+    void fourArgumentCallHasNullNotes() {
+        Booking booking = api.createBooking("R1", 540, 600, null);
+
+        assertNull(booking.getNotes());
+    }
 }

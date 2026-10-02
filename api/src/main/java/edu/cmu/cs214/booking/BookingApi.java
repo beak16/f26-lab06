@@ -61,6 +61,37 @@ public interface BookingApi {
                           String waitlistKey);
 
     /**
+     * Books a room exactly as
+     * {@link #createBooking(String, long, long, String)} does, and also
+     * attaches free-text notes to the booking.
+     *
+     * <p>Every rule of the four-argument method applies unchanged: conflict
+     * handling, waitlisting, id assignment, and the exceptions thrown. The
+     * notes never affect any of them.
+     *
+     * <p>Like the waitlist key, the notes are an opaque caller-supplied string.
+     * This API stores them and hands them back on {@link Booking#getNotes()};
+     * it never interprets them. When the method returns null (a conflict with
+     * no waitlist key), no booking is created and the notes are discarded.
+     *
+     * <p>Calling the four-argument method is equivalent to calling this one
+     * with {@code notes} null.
+     *
+     * @param roomId      the room to book, non-null
+     * @param startMinute first minute of the booking, inclusive
+     * @param endMinute   first minute after the booking, exclusive; must be
+     *                    greater than {@code startMinute}
+     * @param waitlistKey caller's waitlist key, or null to decline waitlisting
+     * @param notes       caller's notes for the booking, or null for none
+     * @return the CONFIRMED booking, the WAITLISTED booking, or null when the
+     *         range conflicts and no waitlist key was given
+     * @throws IllegalArgumentException if {@code roomId} is null or
+     *         {@code endMinute} is not greater than {@code startMinute}
+     */
+    Booking createBooking(String roomId, long startMinute, long endMinute,
+                          String waitlistKey, String notes);
+
+    /**
      * Returns every non-cancelled booking for one room, ordered by start minute.
      *
      * <p>Both CONFIRMED and WAITLISTED bookings are included; CANCELLED
